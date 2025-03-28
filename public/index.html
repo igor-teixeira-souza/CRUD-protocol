@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <title>CRUD de Pessoas</title>
+  </head>
+  <body>
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <i class="fas fa-users-cog"></i>
+                <span>Gerenciamento de Pessoas</span>
+            </div>
+            
+            <div class="menu-btn">
+                <i class="fas fa-bars"></i>
+            </div>
+            
+            <nav id="navbar">
+                <ul>
+                  <li><a href="index.html"><i class="fas fa-user-plus"></i> Cadastrar</a></li>
+                  <li><a href="put.html" class="active"><i class="fas fa-user-edit"></i> Atualizar</a></li>
+                  <li><a href="delete.html"><i class="fas fa-user-minus"></i> Deletar</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <div class="container">
+      <h1>Gerenciamento de Pessoas</h1>
+
+      <div id="alertSuccess" class="alert alert-success">
+        Operação realizada com sucesso!
+      </div>
+
+      <div id="alertError" class="alert alert-error">
+        Ocorreu um erro ao processar sua solicitação.
+      </div>
+
+      <div class="card">
+        <h2>Cadastrar Nova Pessoa</h2>
+        <form id="formCadastro">
+          <div class="form-group">
+            <label for="cpfCadastro">CPF:</label>
+            <input
+              type="text"
+              id="cpfCadastro"
+              placeholder="Digite o CPF (somente números)"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="nome">Nome:</label>
+            <input type="text" id="nome" placeholder="Digite o nome completo" />
+          </div>
+
+          <div class="form-group">
+            <label for="idade">Idade:</label>
+            <input type="text" id="idade" placeholder="Digite a idade" />
+          </div>
+
+          <button type="button" onclick="enviarDados()" class="btn">
+            Cadastrar
+          </button>
+        </form>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <div class="section-divider"></div>
+
+      <div class="card">
+        <h2>Lista de Pessoas Cadastradas</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nome</th>
+              <th>Idade</th>
+              <th>CPF</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-corpo">
+            <!-- Dados serão inseridos aqui via JavaScript -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+
+      // POST - Cadastrar nova pessoa
+      function enviarDados() {
+        const nome = document.getElementById("nome").value;
+        const idade = document.getElementById("idade").value;
+        const cpf = document.getElementById("cpfCadastro").value;
+
+        fetch("pessoas", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            nome: nome,
+            idade: idade,
+            cpf: cpf,
+          }),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Erro ao cadastrar");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            showAlert("success", "Pessoa cadastrada com sucesso!");
+            document.getElementById("formCadastro").reset();
+            carregarTabela(); // Atualiza a tabela
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            showAlert("error", error.message);
+          });
+      }
+
+
+      // Carrega dados na tabela
+      function carregarTabela() {
+        fetch("pessoas")
+          .then((response) => response.json())
+          .then((data) => {
+            const tabela = document.getElementById("tabela-corpo");
+            tabela.innerHTML = "";
+
+            data.forEach((pessoa) => {
+              const row = document.createElement("tr");
+
+              row.innerHTML = `
+                        <td>${pessoa.id}</td>
+                        <td>${pessoa.nome}</td>
+                        <td>${pessoa.idade}</td>
+                        <td>${pessoa.cpf}</td>
+                    `;
+
+              tabela.appendChild(row);
+            });
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            showAlert("error", "Erro ao carregar dados da tabela");
+          });
+      }
+
+
+      // Carrega a tabela quando a página é carregada
+      document.addEventListener("DOMContentLoaded", carregarTabela);
+    </script>
+  </body>
+</html>

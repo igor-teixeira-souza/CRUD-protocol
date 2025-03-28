@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css">
+    <title>Document</title>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <i class="fas fa-users-cog"></i>
+                <span>Gerenciamento de Pessoas</span>
+            </div>
+            
+            <nav id="navbar">
+                <ul>
+                    <li><a href="index.html"><i class="fas fa-user-plus"></i> Cadastrar</a></li>
+                    <li><a href="put.html" class="active"><i class="fas fa-user-edit"></i> Atualizar</a></li>
+                    <li><a href="delete.html"><i class="fas fa-user-minus"></i> Deletar</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <div id="alert" class="alert"></div>
+        
+        <div class="card">
+            <h2><i class="fas fa-user-edit"></i> Buscar e Atualizar Pessoa</h2>
+            <form id="formAtualizar">
+                <div class="form-group">
+                    <label for="cpfAtualizar"><i class="fas fa-id-card"></i> CPF para busca:</label>
+                    <input type="text" id="cpfAtualizar" placeholder="Digite o CPF para buscar">
+                    <button type="button" onclick="buscarDados()" class="btn" style="margin-top: 10px;">
+                        <i class="fas fa-search"></i> Buscar
+                    </button>
+                </div>
+                
+                <div class="form-group">
+                    <label for="nomeAtualizar"><i class="fas fa-user"></i> Nome:</label>
+                    <input type="text" id="nomeAtualizar">
+                </div>
+                
+                <div class="form-group">
+                    <label for="idadeAtualizar"><i class="fas fa-birthday-cake"></i> Idade:</label>
+                    <input type="text" id="idadeAtualizar">
+                </div>
+                
+                <input type="hidden" id="id">
+                
+                <div class="action-buttons">
+                    <button type="button" onclick="atualizarDados()" class="btn btn-success">
+                        <i class="fas fa-save"></i> Atualizar
+                    </button>
+                    <button type="button" onclick="excluirDados()" class="btn btn-warning">
+                        <i class="fas fa-trash-alt"></i> Excluir
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="card">
+            <h2><i class="fas fa-list"></i> Lista de Pessoas Cadastradas</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome</th>
+                        <th>Idade</th>
+                        <th>CPF</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-corpo">
+                    <!-- Dados serão inseridos aqui via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Função para mostrar alerta
+        function showAlert(message, isSuccess = false) {
+            const alertElement = document.getElementById('alert');
+            alertElement.textContent = message;
+            alertElement.className = isSuccess ? 'alert alert-success' : 'alert alert-error';
+            alertElement.style.display = 'block';
+            
+            setTimeout(() => {
+                alertElement.style.display = 'none';
+            }, 5000);
+        }
+
+        // Buscar dados para atualização
+        function buscarDados() {
+            const cpf = document.getElementById('cpfAtualizar').value;
+            
+            if(!cpf) {
+                showAlert('Por favor, informe um CPF para busca');
+                return;
+            }
+
+            fetch('pessoas')
+            .then(response => {
+                if(!response.ok) {
+                    throw new Error('Erro ao buscar dados');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const pessoaEncontrada = data.find(pessoa => pessoa.cpf === cpf);
+                
+                if (pessoaEncontrada) {
+                    document.getElementById('nomeAtualizar').value = pessoaEncontrada.nome;
+                    document.getElementById('idadeAtualizar').value = pessoaEncontrada.idade;
+                    document.getElementById('cpfAtualizar').value = pessoaEncontrada.cpf;
+                    document.getElementById('id').value = pessoaEncontrada.id;
+                    showAlert('Pessoa encontrada!', true);
+                } else {
+                    showAlert('Pessoa não encontrada!');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert(error.message);
+            });
+        }
+
+        // Atualizar dados
+        function atualizarDados() {
+            const id = document.getElementById('id').value;
+            const nome = document.getElementById('nomeAtualizar').value;
+            const idade = document.getElementById('idadeAtualizar').value;
+            const cpf = document.getElementById('cpfAtualizar').value;
+
+            if(!id || !nome || !idade || !cpf) {
+                showAlert('Por favor, busque e preencha todos os campos!');
+                return;
+            }
+
+            fetch(`pessoas/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    nome: nome, 
+                    idade: idade, 
+                    cpf: cpf
+                })
+            })
+            .then(response => {
+                if(!response.ok) {
+                    throw new Error('Erro ao atualizar');
+                }
+                return response.json();
+            })
+            .then(data => {
+                showAlert('Dados atualizados com sucesso!', true);
+                document.getElementById('formAtualizar').reset();
+                carregarTabela();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert(error.message);
+            });
+        }
+
+        // Excluir dados
+        function excluirDados() {
+            const id = document.getElementById('id').value;
+
+            if(!id) {
+                showAlert('Nenhum registro selecionado para exclusão!');
+                return;
+            }
+
+            if(!confirm('Tem certeza que deseja excluir este registro?')) {
+                return;
+            }
+
+            fetch(`pessoas/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if(!response.ok) {
+                    throw new Error('Erro ao excluir');
+                }
+                return response.json();
+            })
+            .then(data => {
+                showAlert('Registro excluído com sucesso!', true);
+                document.getElementById('formAtualizar').reset();
+                carregarTabela();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert(error.message);
+            });
+        }
+
+        // Carrega dados na tabela
+        function carregarTabela() {
+            fetch("pessoas")
+            .then((response) => response.json())
+            .then((data) => {
+                const tabela = document.getElementById("tabela-corpo");
+                tabela.innerHTML = "";
+
+                data.forEach((pessoa) => {
+                    const row = document.createElement("tr");
+
+                    row.innerHTML = `
+                        <td>${pessoa.id}</td>
+                        <td>${pessoa.nome}</td>
+                        <td>${pessoa.idade}</td>
+                        <td>${pessoa.cpf}</td>
+                    `;
+
+                    tabela.appendChild(row);
+                });
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+                showAlert("Erro ao carregar dados da tabela");
+            });
+        }
+
+        // Carrega a tabela quando a página é carregada
+        document.addEventListener("DOMContentLoaded", carregarTabela);
+    </script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+{
+  "pessoas": [
+    {
+      "nome": "Tiago rocha",
+      "idade": "70",
+      "cpf": "999.888.777-66",
+      "id": 5
+    },
+    {
+      "nome": "Igor Teixeira Souza",
+      "idade": "17",
+      "cpf": "41208863878",
+      "id": 6
+    },
+    {
+      "nome": "Lucas Gomes",
+      "idade": "17",
+      "cpf": "4537909876",
+      "id": 7
+    },
+    {
+      "nome": "Otavio",
+      "idade": "17",
+      "cpf": "4893090904",
+      "id": 8
+    },
+    {
+      "nome": "Lucas Gomes",
+      "idade": "17",
+      "cpf": "47804298840",
+      "id": 10
+    }
+  ]
+}
